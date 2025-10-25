@@ -15,3 +15,6 @@ publish:
 
 package-install:
 	python3 -m pip install dist/*.whl
+
+make lint:
+	poetry run ruff check . --fix
