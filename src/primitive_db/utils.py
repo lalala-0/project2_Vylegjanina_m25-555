@@ -5,7 +5,8 @@ def load_metadata(filepath):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError:
+    except IOError as e:
+        print(f"Ошибка при чтении файла {filepath}: {e}")
         return {}
     except json.JSONDecodeError:
         print("Ошибка: поврежден json-файл метаданных, загружаю пустую БД")
