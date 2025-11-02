@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "project2-vylegjanina-m25-555"
 version = "0.1.0"
-description = ""
+description = "Примитивная база данных"
 authors = ["lalala-0 <vylegzhanina.alena@yandex.ru>"]
 readme = "README.md"
 packages = [
@@ -9,13 +9,14 @@ packages = [
 ]
  
 [tool.poetry.scripts]
-project = "src.primitive_db.main:main"
+database = "src.primitive_db.main:run"
 
 [tool.poetry.dependencies]
 python = "^3.12"
 prompt = "^0.4.1"
 
 [tool.poetry.group.dev.dependencies]
+
 ruff = "^0.14.2"
 
 [tool.ruff]
