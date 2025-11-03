@@ -21,7 +21,7 @@ def parse_value(value: str) -> Any:
     try:
         return int(value)
     except ValueError:
-        raise ValueError(f"Некорректное значение: {value}")
+        raise ValueError(f"Значение {value} недопустимого типа. Ожидается int, bool или строка в кавычках.")
 
 
 
@@ -32,7 +32,7 @@ def parse_insert(params: List[str]) -> Dict[str, Any]:
         ['into', 'users', 'values', '("Alice",', '25,', 'true)']
     """
     if len(params) < 4 or params[0] != "into" or params[2] != "values":
-        raise ValueError("Неверный синтаксис insert. Ожидается: insert into <table> values (...)")
+        raise ValueError("Неверный синтаксис insert. Ожидается: insert into <имя_таблицы> values (<значение1>, <значение2>, ...)")
 
     table = params[1]
     values_str = " ".join(params[3:]).strip("()")
@@ -93,8 +93,7 @@ def parse_update(params: List[str]) -> Dict[str, Any]:
 def parse_delete(params: List[str]) -> Dict[str, Any]:
     """
     delete from <имя_таблицы> where <col> = <val>
-    Пример:
-        ['from', 'users', 'where', 'age', '=', '40']
+    Пример: ['from', 'users', 'where', 'age', '=', '40']
     """
     if len(params) != 6 or params[0] != "from" or params[2] != "where" or params[4] != "=":
         raise ValueError("Неверный синтаксис delete. Ожидается: delete from <имя_таблицы> where <столбец> = <значение> ")
@@ -108,8 +107,7 @@ def parse_delete(params: List[str]) -> Dict[str, Any]:
 def parse_info(params: List[str]) -> Dict[str, Any]:
     """
     info <table>
-    Пример:
-        ['users']
+    Пример: ['users']
     """
     if len(params) != 1:
         raise ValueError("Неверный синтаксис info. Ожидается: info <имя_таблицы>")
