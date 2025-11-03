@@ -18,3 +18,6 @@ package-install:
 
 make lint:
 	poetry run ruff check . --fix
+
+clean:
+	rm -rf dist build *.egg-info
