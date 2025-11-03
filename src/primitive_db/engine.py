@@ -40,14 +40,17 @@ def run():
         except (KeyboardInterrupt, EOFError):
             print("\nЗавершение работы...")
             break
-        args = shlex.split(user_input) # pyright: ignore[reportArgumentType]
-        cmd, *params = args
+        try:
+            args = shlex.split(user_input, posix=False) # pyright: ignore[reportArgumentType]
+            cmd, *params = args
+        except Exception as e:
+            print(f"Некорректные параметры: {e}")
+            continue
 
         try:
 
             match cmd:
                 case "create_table":
-
                     core.create_table(metadata, params[0], params[1:])
                     save_metadata(META_PATH, metadata)
                 case "drop_table":
@@ -59,10 +62,7 @@ def run():
                 case "insert":
                     parsed = pars.parse_insert(params)
                     table_name = parsed["table"]
-                    table_data = load_table_data(table_name)
                     new_data = core.insert(metadata, table_name, parsed["values"])
-                    save_table_data(table_name, new_data)
-
                 case "select":
                     parsed = pars.parse_select(params)
                     table_data = load_table_data(parsed["table"])
@@ -70,23 +70,22 @@ def run():
                     if not result:
                         print("Нет данных по запросу.")
                     else:
-                        table = PrettyTable(result[0].keys())
+                        all_keys = list(result[0].keys())
+                        all_keys.insert(0, all_keys.pop(all_keys.index("ID")))
+                        table = PrettyTable(all_keys)
                         for row in result:
-                            table.add_row(row.values())
+                            table.add_row([row.get(k) for k in all_keys])
                         print(table)
-
                 case "update":
                     parsed = pars.parse_update(params)
                     table_data = load_table_data(parsed["table"])
                     new_data = core.update(table_data, parsed["set"], parsed["where"])
                     save_table_data(parsed["table"], new_data)
-
                 case "delete":
                     parsed = pars.parse_delete(params)
                     table_data = load_table_data(parsed["table"])
                     new_data = core.delete(table_data, parsed["where"])
                     save_table_data(parsed["table"], new_data)
-
                 case "info":
                     parsed = pars.parse_info(params)
                     core.info(metadata, parsed["table"])

@@ -24,6 +24,7 @@ def parse_value(value: str) -> Any:
         raise ValueError(f"Некорректное значение: {value}")
 
 
+
 def parse_insert(params: List[str]) -> Dict[str, Any]:
     """
     insert into <table> values (<v1>, <v2>, ...)
@@ -69,9 +70,9 @@ def parse_update(params: List[str]) -> Dict[str, Any]:
     Пример:
         ['users', 'set', 'age', '=', '31', 'where', 'name', '=', '"Alice"']
     """
-    if len(params) != 9 or params[1] != "set" or params[6] != "where" :
+    if len(params) != 9 or params[1] != "set" or params[5] != "where" :
         raise ValueError("Неверный синтаксис update. " \
-        "Ожидается: update <имя_таблицы> set<столбец_условия> = <значение_условия> where <столбец_условия> = <значение_условия>")
+        "Ожидается: update <имя_таблицы> set <столбец_условия> = <значение_условия> where <столбец_условия> = <значение_условия>")
 
     table = params[0]
     where_idx = params.index("where")

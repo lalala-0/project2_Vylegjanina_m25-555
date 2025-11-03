@@ -1,1 +1,1 @@
-{"users": {"columns": {"ID": "int", "name": "str", "active": "bool"}}, "orders": {"columns": {"ID": "int", "total": "int"}}, "test": {"columns": {"ID": "int", "t1": "int"}}, "test2": {"columns": {"ID": "int"}}}
+{"users": {"columns": {"ID": "int", "name": "str", "active": "bool"}}, "orders": {"columns": {"ID": "int", "total": "int"}}, "test": {"columns": {"ID": "int", "t1": "int"}}, "test2": {"columns": {"ID": "int"}}, "a": {"columns": {"ID": "int", "c1": "int", "c2": "str", "c3": "bool"}}}
