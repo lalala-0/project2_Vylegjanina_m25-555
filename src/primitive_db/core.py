@@ -1,8 +1,9 @@
-from utils import load_table_data, save_table_data
+from typing import Dict, Any, List
+from src.primitive_db.utils import load_table_data, save_table_data
 
 VALID_TYPES = {"int", "str", "bool"}
 
-def create_table(metadata, name, columns):
+def create_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str, columns: Dict[str, str]) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Создаёт таблицу с колонками. Добавляет ID:int."""
     if name in metadata:
         print(f'Ошибка: Таблица "{name}" уже существует.')
@@ -27,7 +28,7 @@ def create_table(metadata, name, columns):
     print(f'Tаблица "{name}" создана со столбцами: {", ".join(col_dict.keys())}')
     return metadata
 
-def drop_table(metadata, name):
+def drop_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Удаляет таблицу."""
     if name not in metadata:
         print(f'Ошибка: Таблица "{name}" не найдена.')
@@ -36,7 +37,7 @@ def drop_table(metadata, name):
     print(f'Таблица "{name}" успешно удалена.')
     return metadata
 
-def list_tables(metadata):
+def list_tables(metadata: Dict[str, Dict[str, Dict[str, str]]]) -> None:
     """Выводит метаданные всех таблиц."""
     if not metadata:
         print("Таблицы отсутствуют.")
@@ -45,33 +46,30 @@ def list_tables(metadata):
     for t in metadata:
         print("-", t)
 
-def insert(metadata, table_name, values):
+def insert(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str, values: List[Any]) -> None:
     """Вставляет запись в таблицу."""
     if table_name not in metadata:
         raise KeyError(f"Таблица '{table_name}' не найдена.")
-    schema = metadata[table_name]["columns"]
-    columns = [c["name"] for c in schema if c["name"] != "ID"]
+    schema = metadata[table_name]["columns"].copy()
+    schema.pop("ID")
 
-    if len(values) != len(columns) - 1:
+    if len(values) != len(schema):
         raise ValueError("Количество значений не совпадает со схемой таблицы.")
 
-    # Валидация типов
-    schema.pop("ID")
     validated = {}
     try:
         for (col, col_type), val in zip(schema.items(), values):
             if col_type == "int":
-                val = int(val)
+                if not isinstance(val, int):
+                    raise ValueError(f"Ошибка: значение для столбца '{col}' должно быть целым числом.")
             elif col_type == "bool":
-                if val.lower() in ("true", "false"):
-                    val = (val.lower() == "true")
-                else:
-                    raise ValueError(f"Ошибка типа для столбца '{col}': ожидалось значение типа bool (true/false)")
+                if not isinstance(val, bool):
+                    raise ValueError(f"Ошибка: значение для столбца '{col}' должно быть булевым (True/False).")
             elif col_type == "str":
-                val = str(val)
-            validated[col] = val
+                if not isinstance(val, str):
+                    raise ValueError(f"Ошибка: значение для столбца '{col}' должно быть строкой.")
     except ValueError as e:
-        raise ValueError(f"Ошибка типа для столбца '{col}': {e}")
+        raise ValueError(e)
 
     data = load_table_data(table_name)
     new_id = (len(data) + 1)
@@ -80,12 +78,12 @@ def insert(metadata, table_name, values):
     save_table_data(table_name, data)
     print(f"Запись с ID={new_id} успешно добавлена в таблицу '{table_name}'.")
 
-def select(table_data, where_clause=None):
+def select(table_data: List[Dict[str, Any]], where_clause: Dict[str, Any] = {}) -> List[Dict[str, Any]]:
     """Выбирает записи из таблицы по условию WHERE, если условия нет - возвращает все данные таблицы."""
-    if where_clause is None:
+    if where_clause is {}:
         return table_data
 
-    key, expected_value = where_clause
+    key, expected_value = where_clause.items()
     filtered = []
     for record in table_data:
         if key not in record:
@@ -94,7 +92,7 @@ def select(table_data, where_clause=None):
             filtered.append(record)
     return filtered
 
-def update(table_data, set_clause, where_clause):
+def update(table_data: List[Dict[str, Any]], set_clause: Dict[str, Any], where_clause: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Обновляет записи в таблице по условию WHERE."""
     key_where, expected_value = where_clause
     key_set, new_value = set_clause
@@ -112,7 +110,7 @@ def update(table_data, set_clause, where_clause):
     print(f"Обновлено записей: {updated_count}")
     return table_data
 
-def delete(table_data, where_clause):
+def delete(table_data: List[Dict[str, Any]], where_clause: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Удаляет записи из таблицы по условию WHERE."""
     key, expected_value = where_clause
     initial_count = len(table_data)
@@ -122,7 +120,7 @@ def delete(table_data, where_clause):
     print(f"Удалено записей: {deleted_count}")
     return table_data
 
-def info(metadata, table_name):
+def info(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str) -> None:
     """Выводит информацию о таблице."""
     if table_name not in metadata:
         print("Таблица не найдена.")
@@ -130,6 +128,6 @@ def info(metadata, table_name):
     schema = metadata[table_name]["columns"]
     table_data = load_table_data(table_name)
     print(f"Таблица: {table_name}")
-    cols = ", ".join(f"{name}:{type_}" for name, type_ in schema)
+    cols = ", ".join(f"{name}:{type_}" for name, type_ in schema.items())
     print(f"Столбцы: {cols}")
     print(f"Количество записей: {len(table_data)}")
