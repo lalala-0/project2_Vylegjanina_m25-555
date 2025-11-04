@@ -26,7 +26,6 @@ def parse_value(value: str) -> Any:
                          "Ожидается int, bool или строка в кавычках.")
 
 
-
 def parse_insert(params: List[str]) -> Dict[str, Any]:
     """
     insert into <table> values (<v1>, <v2>, ...)
