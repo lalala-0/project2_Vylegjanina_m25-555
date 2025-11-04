@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "project2-vylegjanina-m25-555"
-version = "0.1.3"
+version = "1.0.0"
 description = "Примитивная база данных"
 authors = ["Вылегжанина Алёна <vylegzhanina.alena@yandex.ru>"]
 readme = "README.md"
