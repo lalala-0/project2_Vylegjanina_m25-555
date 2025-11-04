@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "project2-vylegjanina-m25-555"
+version = "1.0.0"
+description = "Примитивная база данных"
+authors = ["Вылегжанина Алёна <vylegzhanina.alena@yandex.ru>"]
+readme = "README.md"
+packages = [
+    { include = "src" },
+]
+ 
+[tool.poetry.scripts]
+database = "src.primitive_db.main:run"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+prompt = "^0.4.1"
+prettytable = "^3.16.0"
+
+[tool.poetry.group.dev.dependencies]
+
+ruff = "^0.14.2"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = ["venv", ".venv", "dist", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = []
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
