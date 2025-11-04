@@ -1,12 +1,15 @@
 from typing import Dict, Any, List, Optional
+from src.decorators import handle_db_errors, log_time, confirm_action, create_cacher
 from src.primitive_db.utils import load_table_data, save_table_data
 
 VALID_TYPES = {"int", "str", "bool"}
+cached_select = create_cacher()
 
+@handle_db_errors
 def create_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str, columns: List[str]) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Создаёт таблицу с колонками. Добавляет ID:int."""
     if name in metadata:
-        print(f'Ошибка: Таблица "{name}" уже существует.')
+        print(f'Таблица "{name}" уже существует.')
         return metadata
 
     col_dict = {}
@@ -28,6 +31,8 @@ def create_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str, colu
     print(f'Tаблица "{name}" создана со столбцами: {", ".join(col_dict.keys())}')
     return metadata
 
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Удаляет таблицу."""
     if name not in metadata:
@@ -37,6 +42,7 @@ def drop_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str) -> Dic
     print(f'Таблица "{name}" успешно удалена.')
     return metadata
 
+@handle_db_errors
 def list_tables(metadata: Dict[str, Dict[str, Dict[str, str]]]) -> None:
     """Выводит метаданные всех таблиц."""
     if not metadata:
@@ -46,6 +52,8 @@ def list_tables(metadata: Dict[str, Dict[str, Dict[str, str]]]) -> None:
     for t in metadata:
         print("-", t)
 
+@handle_db_errors
+@log_time
 def insert(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str, values: List[Any]) -> None:
     """Вставляет запись в таблицу."""
     if table_name not in metadata:
@@ -81,8 +89,17 @@ def insert(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str, valu
     save_table_data(table_name, data)
     print(f"Запись с ID={new_id} успешно добавлена в таблицу '{table_name}'.")
 
+@handle_db_errors
+@log_time
 def select(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """Выбирает записи из таблицы по условию WHERE, если условия нет - возвращает все данные таблицы."""
+    key = (tuple(tuple(sorted(r.items())) for r in table_data), frozenset(where_clause.items()) if where_clause else None)
+    return cached_select(key, lambda: _select_impl(table_data, where_clause))
+
+
+def _select_impl(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """Внутренняя реализация выбора записей из таблицы по условию WHERE"""
+    
     if where_clause is None:
         return table_data
 
@@ -97,6 +114,7 @@ def select(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[str, An
             filtered.append(record)
     return filtered
 
+@handle_db_errors
 def update(table_data: List[Dict[str, Any]], set_clause: Dict[str, Any], where_clause: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Обновляет записи в таблице по условию WHERE."""
     key_where, expected_value = next(iter(where_clause.items()))
@@ -119,6 +137,8 @@ def update(table_data: List[Dict[str, Any]], set_clause: Dict[str, Any], where_c
     print(f"Обновлено записей: {updated_count}")
     return table_data
 
+@handle_db_errors
+@confirm_action("удаление записей")
 def delete(table_data: List[Dict[str, Any]], where_clause: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Удаляет записи из таблицы по условию WHERE."""
     key, expected_value = next(iter(where_clause.items()))
@@ -133,6 +153,7 @@ def delete(table_data: List[Dict[str, Any]], where_clause: Dict[str, Any]) -> Li
     print(f"Удалено записей: {deleted_count}")
     return table_data
 
+@handle_db_errors
 def info(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str) -> None:
     """Выводит информацию о таблице."""
     if table_name not in metadata:

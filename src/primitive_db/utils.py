@@ -1,24 +1,22 @@
 import json
-from sqlite3 import DataError
 
 def load_metadata(filepath):
     """Загружает метаданные базы."""
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError:
-        return dict()
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Файл метаданных {filepath} не найден: {e}.")
     except IOError as e:
         raise IOError(f"Ошибка при чтении файла {filepath}: {e}")
     except json.JSONDecodeError as e:
-        raise DataError(f"Ошибка: поврежден json-файл метаданных {filepath}: {e}")
+        raise ValueError(f"Поврежден json-файл метаданных {filepath}: {e}")
 
 def save_metadata(filepath, data):
     """Сохраняет метаданные базы. Возвращает True/False."""
     try:
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f)
-        return True
     except IOError as e:
         raise IOError(f"Ошибка при сохранении в файл {filepath}: {e}")
 
@@ -28,12 +26,13 @@ def load_table_data(table_name):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         return list()
+        #raise FileNotFoundError(f"Файл данных таблицы {table_name} не найден: {e}")
     except IOError as e:
         raise IOError(f"Ошибка при чтении файла {filepath}: {e}")
     except json.JSONDecodeError as e:
-        raise DataError(f"Ошибка: поврежден json-файл данных таблицы {table_name}: {e}", e)
+        raise ValueError(f"Поврежден json-файл данных таблицы {table_name}: {e}", e)
 
 def save_table_data(table_name, data):
     """Сохраняет данные таблицы в JSON-файл. Возвращает True/False."""
