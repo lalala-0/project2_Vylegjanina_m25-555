@@ -1,5 +1,6 @@
 import json
 
+
 def load_metadata(filepath):
     """Загружает метаданные базы."""
     try:
@@ -26,7 +27,7 @@ def load_table_data(table_name):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         return list()
         #raise FileNotFoundError(f"Файл данных таблицы {table_name} не найден: {e}")
     except IOError as e:

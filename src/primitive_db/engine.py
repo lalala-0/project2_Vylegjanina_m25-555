@@ -1,22 +1,22 @@
 import shlex
+
 import prompt
 from prettytable import PrettyTable
 
-from src.primitive_db.utils import *
-import src.primitive_db.core as core 
+from src.primitive_db.constants import META_PATH
+import src.primitive_db.core as core
 import src.primitive_db.parser as pars
-
-META_PATH = "./data/db_meta.json"
+from src.primitive_db.utils import *
 
 def print_help():
     """Prints the help message for the current mode."""
-   
+
     print("\n***Процесс работы с таблицей***")
     print("Функции:")
     print("<command> create_table <имя_таблицы> <столбец1:тип> .. - создать таблицу")
     print("<command> list_tables - показать список всех таблиц")
     print("<command> drop_table <имя_таблицы> - удалить таблицу")
-    
+
     print("\n***Операции с данными***")
     print("Функции:")
     print("<command> insert into <имя_таблицы> values (<значение1>, <значение2>, ...) - создать запись.")
@@ -96,5 +96,4 @@ def run():
                 break
             case _:
                 print(f"Неизвестная команда: {cmd}\n")
-        
-        
+

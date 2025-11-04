@@ -1,8 +1,9 @@
-from typing import Dict, Any, List, Optional
-from src.decorators import handle_db_errors, log_time, confirm_action, create_cacher
+from typing import Any, Dict, List, Optional
+
+from src.primitive_db.constants import VALID_TYPES
+from src.decorators import confirm_action, create_cacher, handle_db_errors, log_time
 from src.primitive_db.utils import load_table_data, save_table_data
 
-VALID_TYPES = {"int", "str", "bool"}
 cached_select = create_cacher()
 
 @handle_db_errors
@@ -99,7 +100,7 @@ def select(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[str, An
 
 def _select_impl(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """Внутренняя реализация выбора записей из таблицы по условию WHERE"""
-    
+
     if where_clause is None:
         return table_data
 
