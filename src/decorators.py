@@ -60,7 +60,7 @@ def create_cacher():
 
     def cache_result(key, value_func):
         if key in cache_storage:
-            #print(f"Результат для {key} взят из кэша")
+            print(f"Результат для {key} взят из кэша")
             return cache_storage[key]
         value = value_func()
         cache_storage[key] = value
