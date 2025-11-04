@@ -23,14 +23,15 @@ def handle_db_errors(func):
     return wrapper
 
 
-def confirm_action(action_name):
+def confirm_action(act_name):
     """
     Декоратор-фабрика, запрашивающий подтверждение у пользователя для опасных операций.
     """
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            answer = input(f'Вы уверены, что хотите выполнить "{action_name}"? [y/n]: ').strip().lower()
+            answer = input(f'Вы уверены, '\
+                        f'что хотите выполнить "{act_name}"? [y/n]: ').strip().lower()
             if answer == 'y':
                 return func(*args, **kwargs)
             print("Операция отменена пользователем.")

@@ -3,10 +3,11 @@ import shlex
 import prompt
 from prettytable import PrettyTable
 
-from src.primitive_db.constants import META_PATH
 import src.primitive_db.core as core
 import src.primitive_db.parser as pars
-from src.primitive_db.utils import *
+import src.primitive_db.utils as utils
+from src.primitive_db.constants import META_PATH
+
 
 def print_help():
     """Prints the help message for the current mode."""
@@ -19,11 +20,15 @@ def print_help():
 
     print("\n***Операции с данными***")
     print("Функции:")
-    print("<command> insert into <имя_таблицы> values (<значение1>, <значение2>, ...) - создать запись.")
-    print("<command> select from <имя_таблицы> where <столбец> = <значение> - прочитать записи по условию.")
+    print("<command> insert into <имя_таблицы> " \
+    "values (<значение1>, <значение2>, ...) - создать запись.")
+    print("<command> select from <имя_таблицы> " \
+    "where <столбец> = <значение> - прочитать записи по условию.")
     print("<command> select from <имя_таблицы> - прочитать все записи.")
-    print("<command> update <имя_таблицы> set <столбец1> = <новое_значение1> where <столбец_условия> = <значение_условия> - обновить запись.")
-    print("<command> delete from <имя_таблицы> where <столбец> = <значение> - удалить запись.")
+    print("<command> update <имя_таблицы> set <столбец1> = <новое_значение1> " \
+    "where <столбец_условия> = <значение_условия> - обновить запись.")
+    print("<command> delete from <имя_таблицы> " \
+    "where <столбец> = <значение> - удалить запись.")
     print("<command> info <имя_таблицы> - вывести информацию о таблице.")
 
     print("\nОбщие команды:")
@@ -32,7 +37,7 @@ def print_help():
 
 def run():
     print_help()
-    metadata = load_metadata(META_PATH)
+    metadata = utils.load_metadata(META_PATH)
 
     while True:
         try:
@@ -50,10 +55,10 @@ def run():
         match cmd:
             case "create_table":
                 core.create_table(metadata, params[0], params[1:])
-                save_metadata(META_PATH, metadata)
+                utils.save_metadata(META_PATH, metadata)
             case "drop_table":
                 core.drop_table(metadata, params[0])
-                save_metadata(META_PATH, metadata)
+                utils.save_metadata(META_PATH, metadata)
             case "list_tables":
                 core.list_tables(metadata)
 
@@ -63,7 +68,7 @@ def run():
                 new_data = core.insert(metadata, table_name, parsed["values"])
             case "select":
                 parsed = pars.parse_select(params)
-                table_data = load_table_data(parsed["table"])
+                table_data = utils.load_table_data(parsed["table"])
                 result = core.select(table_data, parsed["where"])
                 if not result:
                     print("Нет данных по запросу.")
@@ -76,14 +81,14 @@ def run():
                     print(table)
             case "update":
                 parsed = pars.parse_update(params)
-                table_data = load_table_data(parsed["table"])
+                table_data = utils.load_table_data(parsed["table"])
                 new_data = core.update(table_data, parsed["set"], parsed["where"])
-                save_table_data(parsed["table"], new_data)
+                utils.save_table_data(parsed["table"], new_data)
             case "delete":
                 parsed = pars.parse_delete(params)
-                table_data = load_table_data(parsed["table"])
+                table_data = utils.load_table_data(parsed["table"])
                 new_data = core.delete(table_data, parsed["where"])
-                save_table_data(parsed["table"], new_data)
+                utils.save_table_data(parsed["table"], new_data)
             case "info":
                 parsed = pars.parse_info(params)
                 core.info(metadata, parsed["table"])

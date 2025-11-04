@@ -1,13 +1,15 @@
 from typing import Any, Dict, List, Optional
 
-from src.primitive_db.constants import VALID_TYPES
 from src.decorators import confirm_action, create_cacher, handle_db_errors, log_time
+from src.primitive_db.constants import VALID_TYPES
 from src.primitive_db.utils import load_table_data, save_table_data
 
 cached_select = create_cacher()
 
 @handle_db_errors
-def create_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str, columns: List[str]) -> Dict[str, Dict[str, Dict[str, str]]]:
+def create_table(metadata: Dict[str, Dict[str, Dict[str, str]]],
+                 name: str, columns: List[str]
+                 ) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Создаёт таблицу с колонками. Добавляет ID:int."""
     if name in metadata:
         print(f'Таблица "{name}" уже существует.')
@@ -34,7 +36,8 @@ def create_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str, colu
 
 @handle_db_errors
 @confirm_action("удаление таблицы")
-def drop_table(metadata: Dict[str, Dict[str, Dict[str, str]]], name: str) -> Dict[str, Dict[str, Dict[str, str]]]:
+def drop_table(metadata: Dict[str, Dict[str, Dict[str, str]]],
+               name: str) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Удаляет таблицу."""
     if name not in metadata:
         print(f'Ошибка: Таблица "{name}" не найдена.')
@@ -55,7 +58,8 @@ def list_tables(metadata: Dict[str, Dict[str, Dict[str, str]]]) -> None:
 
 @handle_db_errors
 @log_time
-def insert(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str, values: List[Any]) -> None:
+def insert(metadata: Dict[str, Dict[str, Dict[str, str]]],
+           table_name: str, values: List[Any]) -> None:
     """Вставляет запись в таблицу."""
     if table_name not in metadata:
         raise KeyError(f"Таблица '{table_name}' не найдена.")
@@ -69,16 +73,20 @@ def insert(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str, valu
     try:
         for (col, col_type), val in zip(schema.items(), values):
             if col_type == "int":
-                if type(val) != int:
-                    raise ValueError(f"Ошибка: значение для столбца '{col}' должно быть целым числом.")
+                if type(val) is not int:
+                    raise ValueError(f"Ошибка: значение для столбца '{col}' "\
+                                     "должно быть целым числом.")
             elif col_type == "bool":
-                if type(val) != bool:
-                    raise ValueError(f"Ошибка: значение для столбца '{col}' должно быть булевым (True/False).")
+                if type(val) is not bool:
+                    raise ValueError(f"Ошибка: значение для столбца '{col}' "\
+                                     "должно быть булевым (True/False).")
             elif col_type == "str":
-                if type(val) != str:
-                    raise ValueError(f"Ошибка: значение для столбца '{col}' должно быть строкой.")
+                if type(val) is not str:
+                    raise ValueError(f"Ошибка: значение для столбца '{col}'"\
+                                     " должно быть строкой.")
             else:
-                raise ValueError(f"Неизвестный тип столбца '{col_type}' для столбца '{col}'.")
+                raise ValueError(f"Неизвестный тип столбца '{col_type}' "\
+                                 f"для столбца '{col}'.")
             validated[col] = val
     except ValueError as e:
         raise ValueError(e)
@@ -92,13 +100,21 @@ def insert(metadata: Dict[str, Dict[str, Dict[str, str]]], table_name: str, valu
 
 @handle_db_errors
 @log_time
-def select(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-    """Выбирает записи из таблицы по условию WHERE, если условия нет - возвращает все данные таблицы."""
-    key = (tuple(tuple(sorted(r.items())) for r in table_data), frozenset(where_clause.items()) if where_clause else None)
+def select(table_data: List[Dict[str, Any]],
+           where_clause: Optional[Dict[str, Any]] = None
+           ) -> List[Dict[str, Any]]:
+    """
+    Выбирает записи из таблицы по условию WHERE,
+    если условия нет - возвращает все данные таблицы.
+    """
+    key = (tuple(tuple(sorted(r.items())) for r in table_data), \
+           frozenset(where_clause.items()) if where_clause else None)
     return cached_select(key, lambda: _select_impl(table_data, where_clause))
 
 
-def _select_impl(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+def _select_impl(table_data: List[Dict[str, Any]],
+                 where_clause: Optional[Dict[str, Any]] = None
+                 ) -> List[Dict[str, Any]]:
     """Внутренняя реализация выбора записей из таблицы по условию WHERE"""
 
     if where_clause is None:
@@ -109,14 +125,19 @@ def _select_impl(table_data: List[Dict[str, Any]], where_clause: Optional[Dict[s
     for record in table_data:
         if key not in record:
             raise KeyError(f"Столбца '{key}' нет в таблице.")
-        if type(record[key]) != type(expected_value):
-            raise ValueError(f"Тип значения для столбца '{key}' ({type(record[key]).__name__}) не совпадает с типом в условии WHERE.")
+        if type(record[key]) is not type(expected_value):
+            raise ValueError(f"Тип значения для столбца '{key}' "\
+                             f"({type(record[key]).__name__}) "\
+                             "не совпадает с типом в условии WHERE.")
         if record[key] == expected_value:
             filtered.append(record)
     return filtered
 
 @handle_db_errors
-def update(table_data: List[Dict[str, Any]], set_clause: Dict[str, Any], where_clause: Dict[str, Any]) -> List[Dict[str, Any]]:
+def update(table_data: List[Dict[str, Any]],
+            set_clause: Dict[str, Any],
+            where_clause: Dict[str, Any]
+            ) -> List[Dict[str, Any]]:
     """Обновляет записи в таблице по условию WHERE."""
     key_where, expected_value = next(iter(where_clause.items()))
     key_set, new_value = next(iter(set_clause.items()))
@@ -125,13 +146,17 @@ def update(table_data: List[Dict[str, Any]], set_clause: Dict[str, Any], where_c
     for record in table_data:
         if key_where not in record:
             raise KeyError(f"Столбца '{key_where}' нет в таблице.")
-        if type(record[key_where]) != type(expected_value):
-            raise ValueError(f"Тип значения для столбца '{key_where}' ({type(record[key_where]).__name__}) не совпадает с типом в условии WHERE.")
+        if type(record[key_where]) is not type(expected_value):
+            raise ValueError(f"Тип значения для столбца '{key_where}' "\
+                             f"({type(record[key_where]).__name__}) "\
+                             "не совпадает с типом в условии WHERE.")
         if record[key_where] == expected_value:
             if key_set not in record:
                 raise KeyError(f"Столбца '{key_set}' нет в таблице.")
-            if type(new_value) != type(record[key_set]):
-                raise ValueError(f"Тип нового значения для столбца '{key_set}' ({type(new_value).__name__}) не совпадает с типом столбца.")
+            if type(new_value) is not type(record[key_set]):
+                raise ValueError(f"Тип нового значения для столбца '{key_set}' "\
+                                 f"({type(new_value).__name__}) "\
+                                 "не совпадает с типом столбца.")
             record[key_set] = new_value
             updated_count += 1
 
@@ -140,14 +165,17 @@ def update(table_data: List[Dict[str, Any]], set_clause: Dict[str, Any], where_c
 
 @handle_db_errors
 @confirm_action("удаление записей")
-def delete(table_data: List[Dict[str, Any]], where_clause: Dict[str, Any]) -> List[Dict[str, Any]]:
+def delete(table_data: List[Dict[str, Any]],
+           where_clause: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Удаляет записи из таблицы по условию WHERE."""
     key, expected_value = next(iter(where_clause.items()))
     initial_count = len(table_data)
     if key not in table_data[0]:
         raise KeyError(f"Столбца '{key}' нет в таблице.")
-    if type(table_data[0][key]) != type(expected_value):
-        raise ValueError(f"Тип значения для столбца '{key}' ({type(table_data[0][key]).__name__}) не совпадает с типом в условии WHERE.")
+    if type(table_data[0][key]) is not type(expected_value):
+        raise ValueError(f"Тип значения для столбца '{key}' "\
+                         f"({type(table_data[0][key]).__name__}) "\
+                         "не совпадает с типом в условии WHERE.")
     table_data = [record for record in table_data if record.get(key) != expected_value]
     deleted_count = initial_count - len(table_data)
 

@@ -15,13 +15,15 @@ def parse_value(value: str) -> Any:
     if value.lower() == "false":
         return False
 
-    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+    if (value.startswith('"') and value.endswith('"')) or \
+        (value.startswith("'") and value.endswith("'")):
         return value[1:-1]
 
     try:
         return int(value)
     except ValueError:
-        raise ValueError(f"Значение {value} недопустимого типа. Ожидается int, bool или строка в кавычках.")
+        raise ValueError(f"Значение {value} недопустимого типа." \
+                         "Ожидается int, bool или строка в кавычках.")
 
 
 
@@ -32,7 +34,8 @@ def parse_insert(params: List[str]) -> Dict[str, Any]:
         ['into', 'users', 'values', '("Alice",', '25,', 'true)']
     """
     if len(params) < 4 or params[0] != "into" or params[2] != "values":
-        raise ValueError("Неверный синтаксис insert. Ожидается: insert into <имя_таблицы> values (<значение1>, <значение2>, ...)")
+        raise ValueError("Неверный синтаксис insert. " \
+        "Ожидается: insert into <имя_таблицы> values (<значение1>, <значение2>, ...)")
 
     table = params[1]
     values_str = " ".join(params[3:]).strip("()")
@@ -50,13 +53,15 @@ def parse_select(params: List[str]) -> Dict[str, Any]:
         ['from', 'users', 'where', 'age', '=', '30']
     """
     if len(params) < 2 or params[0] != "from":
-        raise ValueError("Неверный синтаксис select. Ожидается: select from <имя_таблицы> [where <столбец> = <значение>]")
+        raise ValueError("Неверный синтаксис select. " \
+        "Ожидается: select from <имя_таблицы> [where <столбец> = <значение>]")
 
     table = params[1]
 
     if len(params) > 2:
         if len(params) != 6 or params[2] != "where" or params[4] != "=":
-            raise ValueError("Неверный синтаксис where. Ожидается: where <столбец> = <значение>")
+            raise ValueError("Неверный синтаксис where. " \
+            "Ожидается: where <столбец> = <значение>")
         column = params[3]
         value = parse_value(params[5])
         return {"table": table, "where": {column: value}}
@@ -72,7 +77,8 @@ def parse_update(params: List[str]) -> Dict[str, Any]:
     """
     if len(params) != 9 or params[1] != "set" or params[5] != "where" :
         raise ValueError("Неверный синтаксис update. " \
-        "Ожидается: update <имя_таблицы> set <столбец_условия> = <значение_условия> where <столбец_условия> = <значение_условия>")
+        "Ожидается: update <имя_таблицы> set <столбец_условия> = <значение_условия> " \
+        "where <столбец_условия> = <значение_условия>")
 
     table = params[0]
     where_idx = params.index("where")
@@ -80,11 +86,13 @@ def parse_update(params: List[str]) -> Dict[str, Any]:
     where_part = params[where_idx + 1:]
 
     if len(set_part) != 3 or set_part[1] != "=":
-        raise ValueError("Неверный синтаксис set. Ожидается: set<столбец_условия> = <значение_условия>")
+        raise ValueError("Неверный синтаксис set. " \
+        "Ожидается: set<столбец_условия> = <значение_условия>")
     set_clause = {set_part[0]: parse_value(set_part[2])}
 
     if len(where_part) != 3 or where_part[1] != "=":
-        raise ValueError("Неверный синтаксис where. Ожидается: where <столбец_условия> = <значение_условия>")
+        raise ValueError("Неверный синтаксис where. " \
+        "Ожидается: where <столбец_условия> = <значение_условия>")
     where_clause = {where_part[0]: parse_value(where_part[2])}
 
     return {"table": table, "set": set_clause, "where": where_clause}
@@ -95,8 +103,10 @@ def parse_delete(params: List[str]) -> Dict[str, Any]:
     delete from <имя_таблицы> where <col> = <val>
     Пример: ['from', 'users', 'where', 'age', '=', '40']
     """
-    if len(params) != 6 or params[0] != "from" or params[2] != "where" or params[4] != "=":
-        raise ValueError("Неверный синтаксис delete. Ожидается: delete from <имя_таблицы> where <столбец> = <значение> ")
+    if len(params) != 6 or params[0] != "from" or \
+            params[2] != "where" or params[4] != "=":
+        raise ValueError("Неверный синтаксис delete. " \
+        "Ожидается: delete from <имя_таблицы> where <столбец> = <значение> ")
 
     table = params[1]
     column = params[3]
@@ -110,5 +120,6 @@ def parse_info(params: List[str]) -> Dict[str, Any]:
     Пример: ['users']
     """
     if len(params) != 1:
-        raise ValueError("Неверный синтаксис info. Ожидается: info <имя_таблицы>")
+        raise ValueError("Неверный синтаксис info. " \
+        "Ожидается: info <имя_таблицы>")
     return {"table": params[0]}
